@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO-CINEMA: Streaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/movie-projector.png">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend+Mega:wght@400;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #FFFEEF; /* Cream background */
+            background-image: radial-gradient(#00000015 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        h1, h2, h3, .brutalist-font {
+            font-family: 'Lexend Mega', sans-serif;
+        }
+        .brutalist-border {
+            border: 3px solid #000000;
+        }
+        @media (min-width: 768px) {
+            .brutalist-border { border: 4px solid #000000; }
+        }
+        .brutalist-shadow {
+            box-shadow: 4px 4px 0px 0px #000000;
+        }
+        @media (min-width: 768px) {
+            .brutalist-shadow { box-shadow: 8px 8px 0px 0px #000000; }
+        }
+        .brutalist-shadow-sm {
+            box-shadow: 3px 3px 0px 0px #000000;
+        }
+        .brutalist-btn-active:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px 0px #000000;
+        }
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #FF5A5F; border: 3px solid #000; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="brutalist-border bg-[#FFDE4D] p-3 md:p-4 mb-4 brutalist-shadow relative overflow-hidden flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl md:text-5xl font-black uppercase leading-none tracking-tighter mb-1"><a href="/">NEO-CINEMA</a></h1>
+                <p class="text-[10px] md:text-sm font-bold border-t-2 border-black pt-1 inline-block">AD-FREE STREAMING PLATFORM</p>
+            </div>
+            <a href="/" class="bg-white brutalist-border p-2 px-4 font-black brutalist-shadow-sm brutalist-btn-active uppercase text-sm md:text-base">KEMBALI</a>
+        </header>
+
+        <section id="player-section" class="mb-12">
+            <div class="brutalist-border bg-white p-3 md:p-6 brutalist-shadow">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <h2 id="now-playing-title" class="text-lg md:text-3xl font-black uppercase bg-[#6BEB34] p-2 brutalist-border brutalist-shadow-sm inline-block break-words max-w-full">SEDANG DIPUTAR: -</h2>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="showInfoPopup()" class="flex-grow sm:flex-grow-0 bg-[#3F00FF] text-white brutalist-border p-2 font-black brutalist-shadow-sm brutalist-btn-active uppercase flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-xl md:text-2xl" title="Tutorial Subtitle">?</button>
+                    </div>
+                </div>
+                <div class="aspect-video brutalist-border bg-black shadow-[6px_6px_0px_0px_#FF5A5F] md:shadow-[10px_10px_0px_0px_#FF5A5F]">
+                    <iframe id="main-iframe" class="w-full h-full" src="" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Info Popup (Tutorial Subtitle) -->
+    <div id="info-popup" class="fixed inset-0 flex items-center justify-center z-[100] hidden bg-black/60 backdrop-blur-sm p-4">
+        <div class="brutalist-border bg-[#E6FF54] p-6 max-w-md w-full brutalist-shadow relative animate-bounce-short">
+            <button onclick="closeInfoPopup()" class="absolute -top-4 -right-4 bg-[#FF5A5F] brutalist-border p-2 font-black brutalist-shadow-sm brutalist-btn-active uppercase text-xs">TUTUP [X]</button>
+            <h3 class="text-2xl font-black uppercase mb-4 border-b-4 border-black pb-2">TUTORIAL SUBTITLE</h3>
+            <div id="info-content" class="font-bold text-lg space-y-4">
+                <p>1. Klik ikon [CC] atau icon pesan di dalam player.</p>
+                <p>2. Pilih menu Subtitle / Captions.</p>
+                <p>3. Pilih 'Upload' untuk memasukkan file subtitle.</p> 
+                <p>4. Download subtitle di <span class="hover:underline hover:text-[#FF5A5F] transition-colors">https://www.subtitlecat.com/</span>.</p>
+                <div class="bg-black text-[#E6FF54] p-2 text-sm uppercase mt-4">
+                    TIPS: Info ini akan hilang otomatis dalam 5 detik
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const url = urlParams.get('url');
+        const title = urlParams.get('title');
+
+        if (!url) {
+            window.location.href = "/";
+        } else {
+            document.getElementById('now-playing-title').innerText = `SEDANG DIPUTAR: ${title || 'Film'}`;
+            document.getElementById('main-iframe').src = url;
+            showInfoPopup();
+        }
+
+        let infoTimeout;
+        function showInfoPopup() {
+            const popup = document.getElementById('info-popup');
+            popup.classList.remove('hidden');
+
+            if (infoTimeout) clearTimeout(infoTimeout);
+            infoTimeout = setTimeout(() => {
+                closeInfoPopup();
+            }, 5000);
+        }
+
+        function closeInfoPopup() {
+            const popup = document.getElementById('info-popup');
+            popup.classList.add('hidden');
+            if (infoTimeout) clearTimeout(infoTimeout);
+        }
+    </script>
+</body>
+</html>

@@ -79,21 +79,7 @@
             </section>
         </div>
 
-        <!-- Player Section (Hidden initially) -->
-        <section id="player-section" class="hidden mb-12">
-            <div class="brutalist-border bg-white p-3 md:p-6 brutalist-shadow">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                    <h2 id="now-playing-title" class="text-lg md:text-3xl font-black uppercase bg-[#6BEB34] p-2 brutalist-border brutalist-shadow-sm inline-block break-words max-w-full">SEDANG DIPUTAR: -</h2>
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <button onclick="showInfoPopup()" class="flex-grow sm:flex-grow-0 bg-[#3F00FF] text-white brutalist-border p-2 font-black brutalist-shadow-sm brutalist-btn-active uppercase flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-xl md:text-2xl" title="Tutorial Subtitle">?</button>
-                        <button onclick="closePlayer()" class="flex-grow sm:flex-grow-0 bg-[#FF5A5F] brutalist-border p-2 px-4 font-black brutalist-shadow-sm brutalist-btn-active uppercase text-sm md:text-base">Tutup [X]</button>
-                    </div>
-                </div>
-                <div class="aspect-video brutalist-border bg-black shadow-[6px_6px_0px_0px_#FF5A5F] md:shadow-[10px_10px_0px_0px_#FF5A5F]">
-                    <iframe id="main-iframe" class="w-full h-full" src="" frameborder="0" allowfullscreen></iframe>
-                </div>
-            </div>
-        </section>
+
 
 
 
@@ -126,58 +112,26 @@
         DATA BERHASIL DIMUAT!
     </div>
 
-    <!-- Info Popup (Tutorial Subtitle) -->
-    <div id="info-popup" class="fixed inset-0 flex items-center justify-center z-[100] hidden bg-black/60 backdrop-blur-sm p-4">
-        <div class="brutalist-border bg-[#E6FF54] p-6 max-w-md w-full brutalist-shadow relative animate-bounce-short">
-            <button onclick="closeInfoPopup()" class="absolute -top-4 -right-4 bg-[#FF5A5F] brutalist-border p-2 font-black brutalist-shadow-sm brutalist-btn-active uppercase text-xs">TUTUP [X]</button>
-            <h3 class="text-2xl font-black uppercase mb-4 border-b-4 border-black pb-2">TUTORIAL SUBTITLE</h3>
-            <div id="info-content" class="font-bold text-lg space-y-4">
-                <p>1. Klik ikon [CC] atau icon pesan di dalam player.</p>
-                <p>2. Pilih menu Subtitle / Captions.</p>
-                <p>3. Pilih 'Upload' untuk memasukkan file subtitle.</p> 
-                <p>4. Download subtitle di <span class="hover:underline hover:text-[#FF5A5F] transition-colors">https://www.subtitlecat.com/</span>.</p>
-                <div class="bg-black text-[#E6FF54] p-2 text-sm uppercase mt-4">
-                    TIPS: Info ini akan hilang otomatis dalam 5 detik
-                </div>
+    <!-- Welcome Popup -->
+    <div id="welcome-popup" class="fixed inset-0 flex items-center justify-center z-[100] hidden bg-black/80 backdrop-blur-sm p-4">
+        <div class="brutalist-border bg-[#FFDE4D] p-6 md:p-10 max-w-lg w-full brutalist-shadow relative text-center">
+            <h3 class="text-3xl md:text-4xl font-black uppercase mb-4 border-b-4 border-black pb-2">PENGUMUMAN</h3>
+            <div class="font-bold text-lg md:text-xl space-y-4 mb-8">
+                <!-- Silakan ubah teks pesan di bawah ini -->
+                <p>Perhatian!!Jika Data Film Tidak Muncul Silahkan Hubungi Admin !!</p>
+                <p>Instagram: @Itsnanzzz1</p>
             </div>
+            <button onclick="closeWelcomePopup()" class="w-full bg-black text-white brutalist-border p-4 font-black brutalist-shadow-sm brutalist-btn-active uppercase text-xl hover:bg-[#FF5A5F] transition-colors">SAYA MENGERTI</button>
         </div>
     </div>
 
+    <script src="../lib/api.js"></script>
     <script>
-        
-        // --- KONFIGURASI GOOGLE SHEETS ---
-        // ID dari spreadsheet "Data Film" yang diberikan
-        const SHEET_ID = '1lYFL7NB83BDvy5VeA6hXUEd704vjFwGfCTz50px7K4A';
-        const GID = '0';
-
-        const SHEET_URL =
-        `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
-
         let movies = [];
 
         async function loadMovies() {
     try {
-        const response = await fetch(SHEET_URL);
-
-        if (!response.ok) {
-            throw new Error('Gagal mengambil data spreadsheet');
-        }
-
-        const text = await response.text();
-
-        // Parse response Google Sheets
-        const json = JSON.parse(
-            text.match(/google\.visualization\.Query\.setResponse\((.*)\);/s)[1]
-        );
-
-        const rows = json.table.rows.slice(1);
-
-        movies = rows.map(row => ({
-            nama: row.c?.[0]?.v || '',
-            stream_url: row.c?.[1]?.v || '',
-            thumbnail: row.c?.[2]?.v || ''
-        }))
-        .filter(movie => movie.nama.trim() !== '');
+        movies = await fetchMoviesData();
 
         if (movies.length === 0) {
             document.getElementById('movie-grid').innerHTML = `
@@ -202,7 +156,7 @@
                     KONEKSI GAGAL!
                 </p>
                 <p class="font-bold mt-2">
-                    CEK SPREADSHEET PUBLIC & GID
+                    CEK SUPABASE URL & KEY
                 </p>
             </div>
         `;
@@ -266,43 +220,7 @@
         }
 
         function playMovie(url, title) {
-            const section = document.getElementById('player-section');
-            const iframe = document.getElementById('main-iframe');
-            const titleDisplay = document.getElementById('now-playing-title');
-
-            titleDisplay.innerText = `SEDANG DIPUTAR: ${title}`;
-            iframe.src = url;
-            section.classList.remove('hidden');
-            
-            // Tampilkan popup tutorial otomatis
-            showInfoPopup();
-
-            // Scroll ke player dengan mulus
-            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        let infoTimeout;
-        function showInfoPopup() {
-            const popup = document.getElementById('info-popup');
-            popup.classList.remove('hidden');
-
-            if (infoTimeout) clearTimeout(infoTimeout);
-            infoTimeout = setTimeout(() => {
-                closeInfoPopup();
-            }, 5000);
-        }
-
-        function closeInfoPopup() {
-            const popup = document.getElementById('info-popup');
-            popup.classList.add('hidden');
-            if (infoTimeout) clearTimeout(infoTimeout);
-        }
-
-        function closePlayer() {
-            const section = document.getElementById('player-section');
-            const iframe = document.getElementById('main-iframe');
-            iframe.src = "";
-            section.classList.add('hidden');
+            window.location.href = `/stream?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
         }
 
         function showToast(msg) {
@@ -312,8 +230,20 @@
             setTimeout(() => toast.classList.add('hidden'), 3000);
         }
 
+        function closeWelcomePopup() {
+            document.getElementById('welcome-popup').classList.add('hidden');
+        }
+
         // Jalankan saat halaman siap
-        window.onload = loadMovies;
+        window.onload = () => {
+            loadMovies();
+            
+            // Logika menampilkan popup hanya saat pertama kali dibuka
+            if (!localStorage.getItem('neo_welcome_shown')) {
+                document.getElementById('welcome-popup').classList.remove('hidden');
+                localStorage.setItem('neo_welcome_shown', 'true');
+            }
+        };
     </script>
 </body>
 </html>
