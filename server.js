@@ -6,15 +6,29 @@ const app = express();
 const port = 3000;
 
 app.use(cors());
-
 app.use("/lib", express.static(path.join(__dirname, "lib")));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/api/config", (req, res) => {
-  res.json({
-    SUPABASE_URL: process.env.SUPABASE_URL,
-    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY
-  });
+app.get("/api/movies", async (req, res) => {
+  try {
+    const response = await fetch(
+      `${process.env.SUPABASE_URL}/rest/v1/Data_Film?select=*`,
+      {
+        headers: {
+          'apikey': process.env.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    if (!response.ok) throw new Error('Supabase error');
+
+    const data = await response.json();
+    res.json(data);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get("/", (req, res) => {
