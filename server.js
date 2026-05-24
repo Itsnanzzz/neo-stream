@@ -43,6 +43,31 @@ app.get("/input", (req, res) => {
   res.sendFile(path.join(__dirname, "templates", "input.html"));
 });
 
+app.post("/api/movies", express.json(), async (req, res) => {
+  try {
+      const response = await fetch(
+          `${process.env.SUPABASE_URL}/rest/v1/Data_Film`,
+          {
+              method: 'POST',
+              headers: {
+                  'apikey': process.env.SUPABASE_ANON_KEY,
+                  'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify(req.body)
+          }
+      );
+
+      if (!response.ok) throw new Error('Gagal menyimpan ke database');
+
+      res.json({ success: true });
+
+  } catch (err) {
+      res.status(500).json({ error: err.message });
+  }
+});
+
 if (process.env.NODE_ENV !== 'production') {
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
